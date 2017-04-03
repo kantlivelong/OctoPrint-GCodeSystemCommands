@@ -9,6 +9,7 @@ import octoprint.plugin
 import time
 import os
 import sys
+import subprocess
 
 class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                             octoprint.plugin.TemplatePlugin,
@@ -50,12 +51,15 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             comm_instance._log("Exec(GCodeSystemCommands): OCTO%s" % cmd_id)
 
             try:
-                r = os.system(cmd_line)
+                p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+                output = p.communicate()[0]
+                r = p.returncode
             except:
                 e = sys.exc_info()[0]
                 self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
                 return (None,)
 
+            self._logger.debug("Command ID %s returned: %s, output=%s" % (cmd_id, r, output))
             self._logger.info("Command ID %s returned: %s" % (cmd_id, r))
 
             if r == 0:
