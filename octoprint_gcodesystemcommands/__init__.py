@@ -77,6 +77,20 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             command_definitions = []
         )
 
+    def get_settings_restricted_paths(self):
+        return dict(admin=[["command_definitions"]])
+
+    def on_settings_load(self):
+        data = octoprint.plugin.SettingsPlugin.on_settings_load(self)
+
+        # only return our restricted settings to admin users - this is only needed for OctoPrint <= 1.2.16
+        restricted = ("command_definitions")
+        for r in restricted:
+            if r in data and (current_user is None or current_user.is_anonymous() or not current_user.is_admin()):
+                data[r] = None
+
+        return data
+        
     def on_settings_save(self, data):
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
         self.reload_command_definitions()

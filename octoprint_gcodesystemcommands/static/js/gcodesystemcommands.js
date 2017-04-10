@@ -15,13 +15,15 @@ $(function() {
         };
 
         self.onBeforeBinding = function () {
-            self.settings = self.global_settings.settings.plugins.gcodesystemcommands;
-            self.command_definitions(self.settings.command_definitions.slice(0));
+            self.global_settings.settings.plugins.gcodesystemcommands.command_definitions.subscribe(function() {
+                settings = self.global_settings.settings.plugins.gcodesystemcommands;
+                self.command_definitions(settings.command_definitions.slice(0));            
+            });
         };
 
         self.onSettingsBeforeSave = function () {
             self.global_settings.settings.plugins.gcodesystemcommands.command_definitions(self.command_definitions.slice(0));
-        }
+        };
 
     }
 
