@@ -9,6 +9,7 @@ import octoprint.plugin
 import time
 import os
 import sys
+import subprocess
 
 class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                             octoprint.plugin.TemplatePlugin,
@@ -46,6 +47,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                 cmd_line = self.command_definitions[cmd_id]
             except:
                 self._logger.error("No definiton found for ID %s" % cmd_id)
+                comm_instance._log("Return(GCodeSystemCommands): undefined")
                 return (None,)
 
             self._logger.debug("Command ID=%s, Command Line=%s, Args=%s" % (cmd_id, cmd_line, cmd_args))
@@ -54,12 +56,16 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             comm_instance._log("Exec(GCodeSystemCommands): OCTO%s" % cmd_id)
 
             try:
-                r = os.system("%s %s" % (cmd_line, cmd_args))
+                cmd_line_pieces = shlex.split("%s %s" % (cmd_line, cmd_args))
+                p = subprocess.Popen(cmd_line_pieces, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                output = p.communicate()[0]
+                r = p.returncode
             except:
                 e = sys.exc_info()[0]
                 self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
                 return (None,)
 
+            self._logger.debug("Command ID %s returned: %s, output=%s" % (cmd_id, r, output))
             self._logger.info("Command ID %s returned: %s" % (cmd_id, r))
 
             if r == 0:
@@ -76,6 +82,20 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             command_definitions = []
         )
 
+    def get_settings_restricted_paths(self):
+        return dict(admin=[["command_definitions"]])
+
+    def on_settings_load(self):
+        data = octoprint.plugin.SettingsPlugin.on_settings_load(self)
+
+        # only return our restricted settings to admin users - this is only needed for OctoPrint <= 1.2.16
+        restricted = ("command_definitions")
+        for r in restricted:
+            if r in data and (current_user is None or current_user.is_anonymous() or not current_user.is_admin()):
+                data[r] = None
+
+        return data
+        
     def on_settings_save(self, data):
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
         self.reload_command_definitions()
