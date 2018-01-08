@@ -36,7 +36,11 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
 
     def hook_gcode_queuing(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
         if not gcode and cmd[:4].upper() == 'OCTO':
-            cmd_id = cmd[4:].split(' ')[0]
+            cmd_pieces = cmd[4:].split(' ', 1)
+            cmd_id = cmd_pieces[0]
+            cmd_args = ""
+            if len(cmd_pieces) > 1:
+                cmd_args = cmd_pieces[1]
 
             try:
                 cmd_line = self.command_definitions[cmd_id]
@@ -44,13 +48,13 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                 self._logger.error("No definiton found for ID %s" % cmd_id)
                 return (None,)
 
-            self._logger.debug("Command ID=%s, Command Line=%s" % (cmd_id, cmd_line))
+            self._logger.debug("Command ID=%s, Command Line=%s, Args=%s" % (cmd_id, cmd_line, cmd_args))
 
             self._logger.info("Executing command ID: %s" % cmd_id)
             comm_instance._log("Exec(GCodeSystemCommands): OCTO%s" % cmd_id)
 
             try:
-                r = os.system(cmd_line)
+                r = os.system("%s %s" % (cmd_line, cmd_args))
             except:
                 e = sys.exc_info()[0]
                 self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
