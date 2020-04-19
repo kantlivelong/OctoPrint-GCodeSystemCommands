@@ -42,7 +42,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             try:
                 cmd_line = self.command_definitions[cmd_id]
             except:
-                self._logger.error("No definiton found for ID %s" % cmd_id)
+                self._logger.error("No definition found for ID %s" % cmd_id)
                 comm_instance._log("Return(GCodeSystemCommands): undefined")
                 return (None,)
 
