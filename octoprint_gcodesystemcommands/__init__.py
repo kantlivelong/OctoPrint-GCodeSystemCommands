@@ -12,9 +12,9 @@ import sys
 import subprocess
 
 class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
-                            octoprint.plugin.TemplatePlugin,
-                            octoprint.plugin.AssetPlugin,
-                            octoprint.plugin.SettingsPlugin):
+                          octoprint.plugin.TemplatePlugin,
+                          octoprint.plugin.AssetPlugin,
+                          octoprint.plugin.SettingsPlugin):
 
     def __init__(self):
         self.command_definitions = {}
