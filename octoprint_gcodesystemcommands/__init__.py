@@ -10,6 +10,7 @@ import time
 import os
 import sys
 import subprocess
+import re
 
 class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                           octoprint.plugin.TemplatePlugin,
@@ -36,41 +37,53 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             self._logger.info("Add command definition OCTO%s = %s" % (cmd_id, cmd_line))
 
     def hook_gcode_queuing(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-        if not gcode and cmd[:4].upper() == 'OCTO':
-            cmd_id = cmd[4:].split(' ')[0]
+        if gcode:
+            return
 
-            try:
-                cmd_line = self.command_definitions[cmd_id]
-            except:
-                self._logger.error("No definition found for ID %s" % cmd_id)
-                comm_instance._log("Return(GCodeSystemCommands): undefined")
-                return (None,)
+        match = re.search(r'^(OCTO[0-9]+)(?:\s(.*))?$', cmd)
+        if match is None:
+            return
 
-            self._logger.debug("Command ID=%s, Command Line=%s" % (cmd_id, cmd_line))
+        cmd_id = match.group(1)[4::]
+        cmd_args = match.group(2)
 
-            self._logger.info("Executing command ID: %s" % cmd_id)
-            comm_instance._log("Exec(GCodeSystemCommands): OCTO%s" % cmd_id)
-
-            try:
-                p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-                output = p.communicate()[0]
-                r = p.returncode
-            except:
-                e = sys.exc_info()[0]
-                self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
-                return (None,)
-
-            self._logger.debug("Command ID %s returned: %s, output=%s" % (cmd_id, r, output))
-            self._logger.info("Command ID %s returned: %s" % (cmd_id, r))
-
-            if r == 0:
-                status = 'ok'
-            else:
-                status = 'error'
-
-            comm_instance._log("Return(GCodeSystemCommands): %s" % status)
-
+        try:
+            cmd_line = self.command_definitions[cmd_id]
+        except:
+            self._logger.error("No definition found for ID %s" % cmd_id)
+            comm_instance._log("Return(GCodeSystemCommands): undefined")
             return (None,)
+
+        self._logger.debug("Command ID=%s, Line=%s, Args=%s" % (cmd_id, cmd_line, cmd_args))
+
+        self._logger.info("Executing command ID: %s" % cmd_id)
+        comm_instance._log("Exec(GCodeSystemCommands): OCTO%s" % cmd_id)
+
+        cmd_env = {}
+        cmd_env['OCTOPRINT_GCODESYSTEMCOMMAND_ID'] = str(cmd_id)
+        cmd_env['OCTOPRINT_GCODESYSTEMCOMMAND_ARGS'] = str(cmd_args) if cmd_args else ''
+        cmd_env['OCTOPRINT_GCODESYSTEMCOMMAND_LINE'] = str(cmd)
+
+        try:
+            p = subprocess.Popen(cmd_line, env=cmd_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            output = p.communicate()[0]
+            r = p.returncode
+        except:
+            e = sys.exc_info()[0]
+            self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
+            return (None,)
+
+        self._logger.debug("Command ID %s returned: %s, output=%s" % (cmd_id, r, output))
+        self._logger.info("Command ID %s returned: %s" % (cmd_id, r))
+
+        if r == 0:
+            status = 'ok'
+        else:
+            status = 'error'
+
+        comm_instance._log("Return(GCodeSystemCommands): %s" % status)
+
+        return (None,)
 
     def get_settings_defaults(self):
         return dict(
