@@ -136,6 +136,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
         )
 
 __plugin_name__ = "GCODE System Commands"
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
     global __plugin_implementation__
