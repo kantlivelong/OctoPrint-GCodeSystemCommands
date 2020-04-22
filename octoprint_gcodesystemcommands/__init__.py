@@ -36,7 +36,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             self.command_definitions[cmd_id] = cmd_line
             self._logger.info("Add command definition OCTO%s = %s" % (cmd_id, cmd_line))
 
-    def hook_gcode_queuing(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
+    def hook_gcode_sending(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
         if gcode:
             return
 
@@ -144,6 +144,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.comm.protocol.gcode.queuing": __plugin_implementation__.hook_gcode_queuing,
+        "octoprint.comm.protocol.gcode.sending": __plugin_implementation__.hook_gcode_sending,
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
     }
