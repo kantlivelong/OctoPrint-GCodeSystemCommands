@@ -6,7 +6,7 @@ import setuptools
 plugin_identifier = "gcodesystemcommands"
 plugin_package = "octoprint_%s" % plugin_identifier
 plugin_name = "OctoPrint-GCodeSystemCommands"
-plugin_version = "0.1.1"
+plugin_version = "1.0.0"
 plugin_description = "Define G-Code commands that execute local system commands."
 plugin_author = "Shawn Bruce"
 plugin_author_email = "kantlivelong@gmail.com"
