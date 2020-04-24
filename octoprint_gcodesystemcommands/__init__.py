@@ -40,6 +40,9 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
         if gcode:
             return
 
+        if cmd[:4] != 'OCTO':
+            return
+
         match = re.search(r'^(OCTO[0-9]+)(?:\s(.*))?$', cmd)
         if match is None:
             return
