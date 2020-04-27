@@ -19,6 +19,7 @@ $(function() {
                 settings = self.global_settings.settings.plugins.gcodesystemcommands;
                 self.command_definitions(settings.command_definitions.slice(0));            
             });
+            self.global_settings.settings.plugins.gcodesystemcommands.command_definitions.valueHasMutated();
         };
 
         self.onSettingsBeforeSave = function () {
