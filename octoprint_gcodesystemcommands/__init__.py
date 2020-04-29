@@ -5,6 +5,8 @@ __author__ = "Shawn Bruce <kantlivelong@gmail.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 Shawn Bruce - Released under terms of the AGPLv3 License"
 
+import six
+
 import octoprint.plugin
 import time
 import os
@@ -76,6 +78,9 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
             self._logger.exception("Error executing command ID %s: %s" % (cmd_id, e))
             return (None,)
 
+        # Make sure we don't throw when logging output if it contains non-ascii characters
+        output = six.ensure_text(output, "utf-8", "ignore")
+
         self._logger.debug("Command ID %s returned: %s, output=%s" % (cmd_id, r, output))
         self._logger.info("Command ID %s returned: %s" % (cmd_id, r))
 
@@ -106,7 +111,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
                 data[r] = None
 
         return data
-        
+
     def on_settings_save(self, data):
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
         self.reload_command_definitions()
@@ -119,7 +124,7 @@ class GCodeSystemCommands(octoprint.plugin.StartupPlugin,
     def get_assets(self):
         return {
             "js": ["js/gcodesystemcommands.js"]
-        } 
+        }
 
     def get_update_information(self):
         return dict(
