@@ -16,7 +16,7 @@ $(function() {
 
         self.onBeforeBinding = function () {
             self.global_settings.settings.plugins.gcodesystemcommands.command_definitions.subscribe(function() {
-                settings = self.global_settings.settings.plugins.gcodesystemcommands;
+                var settings = self.global_settings.settings.plugins.gcodesystemcommands;
                 self.command_definitions(settings.command_definitions.slice(0));            
             });
             self.global_settings.settings.plugins.gcodesystemcommands.command_definitions.valueHasMutated();
