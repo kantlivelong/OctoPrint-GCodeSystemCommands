@@ -1,1 +1,3 @@
 OctoPrint
+# six is already required by OctoPrint, but still add it here just in case
+six
